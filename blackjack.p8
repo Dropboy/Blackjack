@@ -10,45 +10,112 @@ __lua__
 --result screens--
 --money(?)--
 
+--suit value--
+	
+ total_score={1}
+
+ dealt_card = false
+
+	clubs = 2
+ spades = 3
+ diamonds = 4
+	hearts = 5
+
 function initdeck()
  deck = {}
  idx = 1
-  for i = hearts, clubs do
+  for i = clubs, hearts do
    for j = 1,13 do
     deck[idx] = {v = j, t = i}
     idx = idx + 1
    end
   end
   for i=52,2,-1 do
-   
+   j = flr(rnd(i)+1)
+   t = deck[i]
+   deck[i] = deck[j]
+   deck[j] = t
   end
+  playerhand = {}
+  dealerhand = {}
+  playerturn = true
 end
 
 function _init()
 	mode="start_screen"
 end
 
-function deck()
-	if mode=="game" then
-  rectfill(35,35,45,45,12)
- end
-end
-
 function update_start()
- if btn(❎) then
+ if btnp(❎) and mode == "start_screen" then
   mode="game"
+  cls(3)
  end
 end
 
-function startgame()
- cls(3)
- deck()
+function update_gameover()
+ if btnp(❎) and mode == "game_over" then
+  mode = "start_screen"
+ end
 end
 
 function _update60()
  if mode == "start_screen" then
+  draw_start()
   update_start()
+ elseif mode == "game" then
+  draw_game()
+  startgame()
+  points()
+ elseif mode == "game_over" then
+  draw_gameover()
  end
+end
+
+function startgame()
+ dealt_card = false
+ if btnp(❎) and mode == "game" then
+  initdeck()
+  draw_card()
+  dealt_card = true
+  add(total_score,deck[1].v)
+ end
+end
+
+function draw_card()
+
+ -- convert suit --
+ if deck[1].t == 2 then
+   deck[1].t = "clubs"
+ else if deck[1].t == 3 then
+   deck[1].t = "spades"
+ else if deck[1].t == 4 then
+   deck[1].t = "diamonds"
+ else
+   deck[1].t = "hearts" 
+ end
+ end
+ end
+
+ cls(3)
+ print("player card 1: ",5,110,7)
+ print(deck[1].v .. " of " .. deck[1].t, 5, 118, 7)
+end
+
+function points()
+
+ local sum = -1
+
+ for i = 1, #total_score do
+
+  sum = sum + total_score[i]
+
+  if sum > 21 then
+   mode = "game_over"
+  end
+
+ end
+
+ print(sum,5,5,7)
 end
 
 function draw_start()
@@ -58,12 +125,14 @@ function draw_start()
  print("press ❎ to start",31,60,7)
 end
 
-function _draw()
- if mode == "start_screen" then
-  draw_start()
- elseif mode == "game" then
-  startgame()
- end
+function draw_game()
+ print("press ❎ to hit",36,60,7)
+ print(mode,50,5,7)
+end
+
+function draw_gameover()
+ cls(3)
+ print("game over",40,60,7)
 end
 
 __gfx__
